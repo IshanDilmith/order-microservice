@@ -1,0 +1,21 @@
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  items: [{
+    productId: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true }
+  }],
+  totalDiscount: { type: Number, default: 0 },
+  total: { type: Number, required: true }, // after discount
+  status: {
+    type: String,
+    enum: ['Pending', 'Confirmed', 'Notified', 'Failed'],
+    default: 'Pending'
+  },
+  createdAt: { type: Date, default: Date.now },
+  notifiedAt: { type: Date }
+});
+
+module.exports = mongoose.model('Order', orderSchema);
