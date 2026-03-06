@@ -1,7 +1,26 @@
-const { expressjwt: jwt } = require('express-jwt');
+const jwt = require("jsonwebtoken");
 
-module.exports = jwt({
-  secret: process.env.JWT_SECRET,
-  algorithms: ['HS256'],
-  credentialsRequired: true
-});
+const auth = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Not authorized, token missing",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Not authorized, invalid token",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = auth;

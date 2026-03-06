@@ -5,7 +5,7 @@ const { callViaGateway } = require("../helpers/gatewayFunc");
 //create order
 createOrder = async (req, res) => {
   try {
-    const { userId } = req.auth;
+    const userId = req.user.id;
 
     // Get Cart Data
     const cartData = await callViaGateway(
@@ -128,7 +128,7 @@ updateOrderStatus = async (req, res) => {
 // Get Orders for Authenticated User
 getUserOrders = async (req, res) => {
   try {
-    const { userId } = req.auth;
+    const userId = req.user.id;
     const orders = await Order.find({ userId });
     res.json({ success: true, orders });
   } catch (err) {
