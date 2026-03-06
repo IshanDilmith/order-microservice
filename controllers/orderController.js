@@ -63,7 +63,7 @@ createOrder = async (req, res) => {
       await callViaGateway(
         "PUT",
         `/inventory/products/${item.productId}`,
-        { quantity: item.quantity },
+        { quantity: item.quantity }, // send quantity to decrement
         req.headers,
       );
     }
