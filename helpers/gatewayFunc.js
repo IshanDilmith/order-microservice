@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Helper: make authenticated call via gateway
-export async function callViaGateway(method, path, data = {}, headers = {}) {
+async function callViaGateway(method, path, data = {}, headers = {}) {
   try {
     const response = await axios({
       method,
@@ -15,3 +15,5 @@ export async function callViaGateway(method, path, data = {}, headers = {}) {
     throw err;
   }
 }
+
+module.exports = { callViaGateway };
