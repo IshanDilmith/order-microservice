@@ -15,4 +15,7 @@ router.get('/my-orders', auth, orderController.getUserOrders);
 // Get Order by ID
 router.get('/:id', auth, orderController.getOrderById);
 
+// Get All Orders
+router.get('/', auth, orderController.getAllOrders);
+
 module.exports = router;

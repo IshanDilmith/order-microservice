@@ -74,8 +74,7 @@ createOrder = async (req, res) => {
       "/notification/send",
       {
         email: userEmail,
-        orderId: customOrderId,
-        message: `Order ${customOrderId} placed successfully! Total: $${total}`,
+        orderId: customOrderId
       },
       req.headers,
     );
@@ -114,7 +113,6 @@ updateOrderStatus = async (req, res) => {
       {
         email: userData.email,
         orderId: order.orderId,
-        message: `Your order #${order.orderId} status has been updated to: ${status}`,
       },
       req.headers,
     );
@@ -148,9 +146,21 @@ getOrderById = async (req, res) => {
   }
 };
 
+// get all orders
+getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.json({ success: true, orders });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+};
+
 module.exports = {
   createOrder,
   updateOrderStatus,
   getUserOrders,
   getOrderById,
+  getAllOrders,
+  notifiedAt,
 };
