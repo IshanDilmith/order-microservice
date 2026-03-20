@@ -7,6 +7,7 @@ createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
     const { payMethod } = req.body;
+    const { totalDiscount = 0, deliveryFee = 0 } = req.body; // Optional fields with defaults
 
     // Get Cart Data
     const cartData = await callViaGateway(
@@ -25,6 +26,11 @@ createOrder = async (req, res) => {
       {},
       req.headers,
     );
+
+    if (!userData.email)
+      return res.status(400).json({ error: "User email not found" });
+  
+
     const userEmail = userData.email;
 
     const items = cartData.items.map((item) => ({
@@ -36,7 +42,7 @@ createOrder = async (req, res) => {
     const total = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
-    );
+    ) - totalDiscount + deliveryFee;
 
     // Increment Counter and Get Custom ID
     // This finds the "order_id" doc, increments seq by 1, and returns the NEW doc
@@ -57,6 +63,8 @@ createOrder = async (req, res) => {
       total,
       status: "Pending",
       payMethod,
+      totalDiscount,
+      deliveryFee,
     });
 
     let inventoryError = false;
@@ -83,7 +91,7 @@ createOrder = async (req, res) => {
     await order.save();
 
     // Send Notification
-    await callViaGateway(
+    const notification = await callViaGateway(
       "POST",
       "/notification/send",
       {
@@ -93,7 +101,7 @@ createOrder = async (req, res) => {
       req.headers,
     );
 
-    res.status(201).json({ success: true, order });
+    res.status(201).json({ success: true, order, notification });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create order" });
@@ -120,8 +128,10 @@ updateOrderStatus = async (req, res) => {
       req.headers,
     );
 
+    if (!userData.email) return res.status(400).json({ error: "User email not found" });
+
     // Send Status Update Notification
-    await callViaGateway(
+    const notification = await callViaGateway(
       "POST",
       "/notification/send",
       {
@@ -131,7 +141,7 @@ updateOrderStatus = async (req, res) => {
       req.headers,
     );
 
-    res.json({ success: true, order });
+    res.json({ success: true, order, notification });
   } catch (err) {
     res.status(500).json({ error: "Failed to update status" });
   }

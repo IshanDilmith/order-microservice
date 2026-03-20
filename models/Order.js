@@ -9,7 +9,8 @@ const orderSchema = new mongoose.Schema({
     price: { type: Number, required: true }
   }],
   totalDiscount: { type: Number, default: 0 },
-  total: { type: Number, required: true }, // after discount
+  deliveryFee: { type: Number, default: 0 },
+  total: { type: Number, required: true }, // after discount and adding delivery fee
   status: {
     type: String,
     enum: ['Pending', 'Confirmed', 'Notified', 'Failed'],
