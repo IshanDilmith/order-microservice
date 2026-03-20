@@ -17,11 +17,15 @@ jobs:
           fetch-depth: 0
 
       # FIX 2: Updated to @master and removed the 'with' block (it reads from sonar-project.properties now)
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=ishandilmith
+            -Dsonar.projectKey=IshanDilmith_order-microservice
 
       # FIX 3: Added Azure Login so the final deployment step knows who you are
       - name: Log in to Azure
