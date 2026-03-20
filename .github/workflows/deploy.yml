@@ -8,6 +8,11 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Add this line here
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
     steps:
       # Step 1: Checkout code
