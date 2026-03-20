@@ -6,7 +6,7 @@ const { callViaGateway } = require("../helpers/gatewayFunc");
 createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { payMethod } = req.body;
+    const { payMethod, deliveryAddress, province, district } = req.body;
     const { totalDiscount = 0, deliveryFee = 0 } = req.body; // Optional fields with defaults
 
     // Get Cart Data
@@ -65,6 +65,9 @@ createOrder = async (req, res) => {
       payMethod,
       totalDiscount,
       deliveryFee,
+      deliveryAddress,
+      province,
+      district
     });
 
     let inventoryError = false;

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./config/db.js');
+const connectDB = require('./src/config/db');
 // const swaggerUi = require('swagger-ui-express');
 // const swaggerDocument = require('./swagger.json');
 
@@ -11,7 +11,7 @@ app.use(express.json());
 connectDB();
 
 // Routes
-app.use('/orders', require('./routes/orders'));
+app.use('/orders', require('./src/routes/orders'));
 
 // Swagger docs
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

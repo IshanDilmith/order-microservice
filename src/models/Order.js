@@ -8,6 +8,9 @@ const orderSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
     price: { type: Number, required: true }
   }],
+  deliveryAddress: { type: String, required: true },
+  province: { type: String, required: true },
+  district: { type: String, required: true },
   totalDiscount: { type: Number, default: 0 },
   deliveryFee: { type: Number, default: 0 },
   total: { type: Number, required: true }, // after discount and adding delivery fee
