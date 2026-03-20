@@ -6,6 +6,7 @@ const { callViaGateway } = require("../helpers/gatewayFunc");
 createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { payMethod } = req.body;
 
     // Get Cart Data
     const cartData = await callViaGateway(
@@ -55,18 +56,31 @@ createOrder = async (req, res) => {
       items,
       total,
       status: "Pending",
+      payMethod,
     });
-    await order.save();
+
+    let inventoryError = false;
 
     // Update Inventory
     for (const item of items) {
-      await callViaGateway(
-        "PUT",
-        `/inventory/products/${item.productId}`,
-        { quantity: item.quantity }, // send quantity to decrement
-        req.headers,
-      );
+      try {
+        await callViaGateway(
+          "PUT",
+          `/inventory/products/${item.productId}`,
+          { quantity: item.quantity }, // send quantity to decrement
+          req.headers,
+        );
+      } catch (err) {
+        console.error(`Error updating inventory for product ${item.productId}:`, err);
+        inventoryError = true;
+      }
     }
+
+    if (inventoryError) {
+      return res.status(500).json({ error: "Failed to update inventory for one or more items" });
+    }
+
+    await order.save();
 
     // Send Notification
     await callViaGateway(
@@ -79,7 +93,7 @@ createOrder = async (req, res) => {
       req.headers,
     );
 
-    res.status(201).json(order);
+    res.status(201).json({ success: true, order });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create order" });
@@ -162,5 +176,4 @@ module.exports = {
   getUserOrders,
   getOrderById,
   getAllOrders,
-  notifiedAt,
 };

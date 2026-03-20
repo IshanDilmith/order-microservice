@@ -15,6 +15,11 @@ const orderSchema = new mongoose.Schema({
     enum: ['Pending', 'Confirmed', 'Notified', 'Failed'],
     default: 'Pending'
   },
+  payMethod: {
+    type: String,
+    enum: ['COD', 'Card'],
+    required: true
+  },
   createdAt: { type: Date, default: Date.now },
   notifiedAt: { type: Date }
 });
