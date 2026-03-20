@@ -13,6 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1
+        with:
+          projectKey: IshanDilmith_order-microservice
+          organization: ishandilmith
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Login to ACR
         run: echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
@@ -28,13 +36,5 @@ jobs:
         run: |
           az containerapp update \
             --name order-microservice-app \
-            --resource-group YOUR_RG \
+            --resource-group CTSE \
             --image ${{ secrets.ACR_LOGIN_SERVER }}/order-microservice:v1
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v1
-        with:
-          projectKey: IshanDilmith_order-microservice
-          organization: ishandilmith
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
