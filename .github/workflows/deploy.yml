@@ -33,7 +33,7 @@ jobs:
 
       # Step 4: Build and Push Order Service Image
       - name: Build Order Service Image
-        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }} ./backend/orderService
+        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }} .
 
       # Step 5: Push Order Service Image
       - name: Push Order Service Image
