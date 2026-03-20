@@ -27,25 +27,14 @@ jobs:
             -Dsonar.organization=ishandilmith
             -Dsonar.projectKey=IshanDilmith_order-microservice
 
-      # Step 3: Login to ACR using admin credentials
+      # Step 3: Login to Azure Container Registry
       - name: Login to ACR
-        run: |
-          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+        run: echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-      # Step 4: Build Docker image
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-microservice:${{ github.run_number }} .
+      # Step 4: Build and Push Order Service Image
+      - name: Build Order Service Image
+        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }} ./backend/orderService
 
-      # Step 5: Push Docker image to ACR
-      - name: Push to ACR
-        run: |
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/order-microservice:${{ github.run_number }}
-
-      # Step 6: Deploy to Azure Container Apps
-      - name: Deploy to Azure Container Apps
-        run: |
-          az containerapp update \
-            --name order-microservice-app \
-            --resource-group CTSE \
-            --image ${{ secrets.ACR_LOGIN_SERVER }}/order-microservice:${{ github.run_number }}
+      # Step 5: Push Order Service Image
+      - name: Push Order Service Image
+        run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }}
