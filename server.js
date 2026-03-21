@@ -10,6 +10,10 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
+app.get("/", (req, res) => {
+  res.json({ message: "Order service is running" });
+});
+
 // Routes
 app.use('/orders', require('./src/routes/orders'));
 
