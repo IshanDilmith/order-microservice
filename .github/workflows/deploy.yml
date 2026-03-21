@@ -12,13 +12,15 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v6
+        # Replace the placeholder below with the specific commit SHA for actions/checkout@v6
+        uses: actions/checkout@<insert-commit-sha> 
         with:
           fetch-depth: 0
 
       # Step 2: SonarCloud Scan
       - name: SonarQube Cloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        # Replace the placeholder below with the specific commit SHA for sonarqube-scan-action@v5.0.0
+        uses: SonarSource/sonarqube-scan-action@<insert-commit-sha>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -29,12 +31,20 @@ jobs:
 
       # Step 3: Login to Azure Container Registry
       - name: Login to ACR
-        run: echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+        env:
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" --password-stdin
 
       # Step 4: Build and Push Order Service Image
       - name: Build Order Service Image
-        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }} .
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: docker build -t "$ACR_LOGIN_SERVER"/order-service:${{ github.run_number }} .
 
       # Step 5: Push Order Service Image
       - name: Push Order Service Image
-        run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/order-service:${{ github.run_number }}
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: docker push "$ACR_LOGIN_SERVER"/order-service:${{ github.run_number }}

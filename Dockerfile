@@ -1,11 +1,12 @@
-FROM node:24-slim
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Copy files
 COPY package*.json ./
-RUN npm install
+# Added --ignore-scripts to prevent execution of malicious pre/post install scripts
+RUN npm install --ignore-scripts
 
 COPY . .
 
