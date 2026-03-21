@@ -98,7 +98,7 @@ createOrder = async (req, res) => {
       "POST",
       "/notification/send",
       {
-        keyWord: "order_confirmation",
+        type: "order_confirmation",
         email: userEmail,
         orderId: customOrderId
       },
@@ -139,7 +139,7 @@ updateOrderStatus = async (req, res) => {
       "POST",
       "/notification/send",
       {
-        keyWord: "order_status_update",
+        type: "order_status_update",
         email: userData.email,
         orderId: order.orderId,
       },
