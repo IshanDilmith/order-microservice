@@ -12,15 +12,13 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout code
-        # Replace the placeholder below with the specific commit SHA for actions/checkout@v6
-        uses: actions/checkout@<insert-commit-sha> 
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       # Step 2: SonarCloud Scan
       - name: SonarQube Cloud Scan
-        # Replace the placeholder below with the specific commit SHA for sonarqube-scan-action@v5.0.0
-        uses: SonarSource/sonarqube-scan-action@<insert-commit-sha>
+        uses: SonarSource/sonarqube-scan-action@v7.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
