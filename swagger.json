@@ -18,7 +18,7 @@
       "description": "Local Development Server"
     },
     {
-      "url": "https://api-gateway.kindrock-7ac010da.southeastasia.azurecontainerapps.io",
+      "url": "https://api-gateway.wonderfulpond-b48eec63.southeastasia.azurecontainerapps.io",
       "description": "Production Gateway (Azure)"
     }
   ],
