@@ -3,12 +3,10 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV=production
-
 # Copy files
 COPY package*.json ./
-RUN npm install --omit=dev
+# Added --ignore-scripts to prevent execution of malicious pre/post install scripts
+RUN npm install --ignore-scripts
 
 COPY . .
 
