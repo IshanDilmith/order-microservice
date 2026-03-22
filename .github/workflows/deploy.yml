@@ -16,7 +16,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Step 2: SonarCloud Scan
+      # NEW: Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Feel free to update this if your service uses a different version
+
+      # NEW: Install dependencies cleanly
+      - name: Install dependencies
+        run: npm ci
+
+      # NEW: Run tests and generate the coverage report
+      - name: Run tests
+        run: npm run test
+
+      # Step 2: SonarCloud Scan (Updated to catch the coverage report)
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
         env:
@@ -26,6 +40,7 @@ jobs:
           args: >
             -Dsonar.organization=ishandilmith
             -Dsonar.projectKey=IshanDilmith_order-microservice
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
       # Step 3: Login to Azure Container Registry
       - name: Login to ACR
@@ -35,7 +50,7 @@ jobs:
           ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
         run: echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" --password-stdin
 
-      # Step 4: Build and Push Order Service Image
+      # Step 4: Build Order Service Image
       - name: Build Order Service Image
         env:
           ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
