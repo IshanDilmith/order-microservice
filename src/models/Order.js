@@ -3,8 +3,14 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
   orderId: { type: String, unique: true },
   userId: { type: String, required: true },
+  userEmail: { type: String, required: true, trim: true },
   items: [{
+    productName: { type: String, required: true },
     productId: { type: String, required: true },
+    productImage: {
+      url: { type: String, trim: true },
+      publicId: { type: String, trim: true }
+    },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true }
   }],

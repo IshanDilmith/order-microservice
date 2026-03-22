@@ -2,6 +2,19 @@ const Order = require("../models/Order");
 const Counter = require("../models/Counter");
 const { callViaGateway } = require("../helpers/gatewayFunc");
 
+const getFirstProductImage = (product) => {
+  const firstImage = Array.isArray(product?.images) ? product.images[0] : null;
+
+  if (!firstImage) {
+    return null;
+  }
+
+  return {
+    url: firstImage.url || "",
+    publicId: firstImage.publicId || "",
+  };
+};
+
 //create order
 const createOrder = async (req, res) => {
   try {
@@ -21,10 +34,35 @@ const createOrder = async (req, res) => {
     const userEmail = userData.user.email;
 
     // Calculate Pricing Securely in Backend
-    const items = cart.items.map((item) => ({
-      productId: item.productId,
-      quantity: item.quantity,
-      price: item.price || 0,
+    const items = await Promise.all(cart.items.map(async (item) => {
+      let product = null;
+
+      try {
+        const productData = await callViaGateway(
+          "GET",
+          `/inventory/products/${item.productId}`,
+          {},
+          req.headers
+        );
+
+        product = productData?.product || productData?.data || productData;
+      } catch (err) {
+        console.error(`Non-critical Error: Failed to fetch product details for ${item.productId}:`, err.message);
+      }
+
+      const productName = item.productName || product?.name || product?.productName || product?.title;
+
+      if (!productName) {
+        throw new Error(`Product name not found for product ${item.productId}`);
+      }
+
+      return {
+        productId: item.productId,
+        productName,
+        productImage: getFirstProductImage(product),
+        quantity: item.quantity,
+        price: item.price || product?.price || 0,
+      };
     }));
 
     const total = items.reduce(
@@ -52,6 +90,7 @@ const createOrder = async (req, res) => {
     const order = new Order({
       orderId: customOrderId,
       userId,
+      userEmail,
       items,
       total,
       status: "Pending",

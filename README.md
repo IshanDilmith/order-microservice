@@ -153,10 +153,10 @@ Authorization: Bearer <jwt-token>
 
 ## Core Behavior
 
-- Order creation pulls cart data and user email through the API gateway.
+- Order creation pulls cart data, user email, product names, and the first product image through the API gateway.
 - Inventory updates and notification calls are handled through the gateway.
 - Order IDs are generated in the format `ORD#0001`.
-- The service stores `items`, `total`, `status`, `payMethod`, `deliveryAddress`, `province`, and `district` in MongoDB.
+- The service stores `userEmail`, `items`, `total`, `status`, `payMethod`, `deliveryAddress`, `province`, and `district` in MongoDB.
 
 ## Troubleshooting
 
