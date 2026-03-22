@@ -6,34 +6,21 @@ const { callViaGateway } = require("../helpers/gatewayFunc");
 createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { payMethod, deliveryAddress, province, district } = req.body;
-    const { totalDiscount = 0, deliveryFee = 0 } = req.body; // Optional fields with defaults
+    const { payMethod, deliveryAddress, province, district, totalDiscount = 0, deliveryFee = 0 } = req.body;
 
     // Get Cart Data
-    const cartData = await callViaGateway(
-      "GET",
-      `/cart/${userId}`,
-      {},
-      req.headers,
-    );
-    
+    const cartData = await callViaGateway("GET", `/cart/${userId}`, {}, req.headers);
     const cart = cartData.data; 
+    
     if (!cart?.items?.length) return res.status(400).json({ error: "Cart is empty" });
 
     // Fetch User Email
-    const userData = await callViaGateway(
-      "GET",
-      `/users/${userId}`,
-      {},
-      req.headers,
-    );
-
-    if (!userData.user?.email)
-      return res.status(400).json({ error: "User email not found" });
-  
-
+    const userData = await callViaGateway("GET", `/users/${userId}`, {}, req.headers);
+    if (!userData.user?.email) return res.status(400).json({ error: "User email not found" });
+    
     const userEmail = userData.user.email;
 
+    // Calculate Pricing Securely in Backend
     const items = cart.items.map((item) => ({
       productId: item.productId,
       quantity: item.quantity,
@@ -41,22 +28,33 @@ createOrder = async (req, res) => {
     }));
 
     const total = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
+      (sum, item) => sum + item.price * item.quantity, 0
     ) - totalDiscount + deliveryFee;
 
-    // Increment Counter and Get Custom ID
-    // This finds the "order_id" doc, increments seq by 1, and returns the NEW doc
+    // Generate Custom Order ID
     const counter = await Counter.findOneAndUpdate(
       { id: "order_id" },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true },
+      { new: true, upsert: true }
     );
-
-    // Format: ORD# followed by sequence padded to 4 digits
     const customOrderId = `ORD#${counter.seq.toString().padStart(4, "0")}`;
 
-    // Save Order with Custom ID
+    // Update Inventory (Pre-Save check)
+    let inventoryError = false;
+    for (const item of items) {
+      try {
+        await callViaGateway("PATCH", `/inventory/products/${item.productId}/stock`, { quantity: item.quantity }, req.headers);
+      } catch (err) {
+        console.error(`Error updating inventory for product ${item.productId}:`, err);
+        inventoryError = true;
+      }
+    }
+
+    if (inventoryError) {
+      return res.status(500).json({ error: "Failed to update inventory for one or more items." });
+    }
+
+    // Save Order
     const order = new Order({
       orderId: customOrderId,
       userId,
@@ -71,42 +69,30 @@ createOrder = async (req, res) => {
       district
     });
 
-    let inventoryError = false;
-
-    // Update Inventory
-    for (const item of items) {
-      try {
-        await callViaGateway(
-          "PUT",
-          `/inventory/products/${item.productId}/stock`,
-          { quantity: item.quantity }, // send quantity to decrement
-          req.headers,
-        );
-      } catch (err) {
-        console.error(`Error updating inventory for product ${item.productId}:`, err);
-        inventoryError = true;
-      }
-    }
-
-    if (inventoryError) {
-      return res.status(500).json({ error: "Failed to update inventory for one or more items" });
-    }
-
     await order.save();
 
+    // Clear the Cart Natively via Backend
+    try {
+      await callViaGateway("DELETE", `/cart/clear/${userId}`, {}, req.headers); 
+    } catch (err) {
+      console.error("Non-critical Error: Failed to automatically clear user cart", err);
+    }
+
     // Send Notification
-    const notification = await callViaGateway(
-      "POST",
-      "/notification/send",
-      {
+    let notification = null;
+    try {
+      notification = await callViaGateway("POST", "/notification/send", {
         type: "order_confirmation",
         email: userEmail,
         orderId: customOrderId
-      },
-      req.headers,
-    );
+      }, req.headers);
+    } catch (err) {
+      console.error("Non-critical Error: Failed to send email notification", err);
+    }
 
+    // Successfully Respond
     res.status(201).json({ success: true, order, notification });
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create order" });
