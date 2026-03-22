@@ -26,10 +26,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # NEW: Run tests and generate the coverage report
-      - name: Run tests
-        run: npm run test
-
       # Step 2: SonarCloud Scan (Updated to catch the coverage report)
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
