@@ -24,7 +24,7 @@ jobs:
 
       # NEW: Install dependencies cleanly
       - name: Install dependencies
-        run: npm install
+        run: npm install --ignore-scripts
 
       # Step 2: SonarCloud Scan (Updated to catch the coverage report)
       - name: SonarQube Cloud Scan

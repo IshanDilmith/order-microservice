@@ -29,6 +29,32 @@
     }
   ],
   "paths": {
+    "/": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Service health check",
+        "description": "Returns a simple message confirming that the order service is running.",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Order service is running"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/orders/create": {
       "post": {
         "tags": ["Orders"],
@@ -424,7 +450,7 @@
       "get": {
         "tags": ["Orders"],
         "summary": "Get all orders",
-        "description": "Retrieves all orders in the system. Typically used by admin users.",
+        "description": "Retrieves all orders in the system.",
         "operationId": "getAllOrders",
         "security": [{ "BearerAuth": [] }],
         "responses": {
