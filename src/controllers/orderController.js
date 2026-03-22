@@ -39,15 +39,15 @@ createOrder = async (req, res) => {
     );
     const customOrderId = `ORD#${counter.seq.toString().padStart(4, "0")}`;
 
-    // Update Inventory (Pre-Save check)
+    // Update Inventory concurrently to prevent sequential timeout compounding
     let inventoryError = false;
-    for (const item of items) {
-      try {
-        await callViaGateway("PATCH", `/inventory/products/${item.productId}/stock`, { quantity: item.quantity }, req.headers);
-      } catch (err) {
-        console.error(`Error updating inventory for product ${item.productId}:`, err);
-        inventoryError = true;
-      }
+    try {
+      await Promise.all(items.map(item =>
+        callViaGateway("PATCH", `/inventory/products/${item.productId}/stock`, { quantity: item.quantity }, req.headers)
+      ));
+    } catch (err) {
+      console.error("Error updating inventory for one or more products:", err.message);
+      inventoryError = true;
     }
 
     if (inventoryError) {

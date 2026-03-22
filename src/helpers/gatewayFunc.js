@@ -7,7 +7,8 @@ async function callViaGateway(method, path, data = {}, headers = {}) {
       method,
       url: `${process.env.GATEWAY_URL}${path}`,
       data,
-      headers: { Authorization: headers.authorization || '' }
+      headers: { Authorization: headers.authorization || '' },
+      timeout: 5000
     });
     return response.data;
   } catch (err) {
