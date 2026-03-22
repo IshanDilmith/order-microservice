@@ -16,8 +16,9 @@ createOrder = async (req, res) => {
       {},
       req.headers,
     );
-    if (!cartData.items?.length)
-      return res.status(400).json({ error: "Cart is empty" });
+    
+    const cart = cartData.data; 
+    if (!cart?.items?.length) return res.status(400).json({ error: "Cart is empty" });
 
     // Fetch User Email
     const userData = await callViaGateway(
@@ -27,13 +28,13 @@ createOrder = async (req, res) => {
       req.headers,
     );
 
-    if (!userData.email)
+    if (!userData.user?.email)
       return res.status(400).json({ error: "User email not found" });
   
 
-    const userEmail = userData.email;
+    const userEmail = userData.user.email;
 
-    const items = cartData.items.map((item) => ({
+    const items = cart.items.map((item) => ({
       productId: item.productId,
       quantity: item.quantity,
       price: item.price || 0,
@@ -132,7 +133,7 @@ updateOrderStatus = async (req, res) => {
       req.headers,
     );
 
-    if (!userData.email) return res.status(400).json({ error: "User email not found" });
+    if (!userData.user?.email) return res.status(400).json({ error: "User email not found" });
 
     // Send Status Update Notification
     const notification = await callViaGateway(
@@ -140,7 +141,7 @@ updateOrderStatus = async (req, res) => {
       "/notification/send",
       {
         type: "order_status_update",
-        email: userData.email,
+        email: userData.user.email,
         orderId: order.orderId,
       },
       req.headers,
