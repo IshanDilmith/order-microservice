@@ -3,7 +3,7 @@ const Counter = require("../models/Counter");
 const { callViaGateway } = require("../helpers/gatewayFunc");
 
 //create order
-createOrder = async (req, res) => {
+const createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
     const { payMethod, deliveryAddress, province, district, totalDiscount = 0, deliveryFee = 0 } = req.body;
@@ -94,7 +94,7 @@ createOrder = async (req, res) => {
 };
 
 // Update Order Status
-updateOrderStatus = async (req, res) => {
+const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -129,39 +129,43 @@ updateOrderStatus = async (req, res) => {
 
     res.json({ success: true, order, notification });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to update status" });
   }
 };
 
 // Get Orders for Authenticated User
-getUserOrders = async (req, res) => {
+const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
     const orders = await Order.find({ userId });
     res.json({ success: true, orders });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
 
 // get a single order by ID
-getOrderById = async (req, res) => {
+const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
     const order = await Order.findById(id);
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ success: true, order });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch order" });
   }
 };
 
 // get all orders
-getAllOrders = async (req, res) => {
+const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find();
     res.json({ success: true, orders });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
