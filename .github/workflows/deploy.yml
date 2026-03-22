@@ -24,7 +24,7 @@ jobs:
 
       # NEW: Install dependencies cleanly
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       # NEW: Run tests and generate the coverage report
       - name: Run tests
