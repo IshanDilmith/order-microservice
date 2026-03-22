@@ -164,7 +164,3 @@ Authorization: Bearer <jwt-token>
 - If gateway calls fail, confirm `GATEWAY_URL` is reachable and correctly configured.
 - If requests return `401`, verify the JWT token and `JWT_SECRET`.
 - If MongoDB connection fails, check network access and credentials.
-
-## License
-
-ISC
