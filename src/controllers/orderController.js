@@ -19,71 +19,88 @@ const getFirstProductImage = (product) => {
 const createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { payMethod, deliveryAddress, province, district, totalDiscount = 0, deliveryFee = 0 } = req.body;
+    const {
+      payMethod,
+      deliveryAddress,
+      province,
+      district,
+      totalDiscount = 0,
+      deliveryFee = 0,
+    } = req.body;
 
     // Get Cart Data
-    const cartData = await callViaGateway("GET", `/cart/${userId}`, {}, req.headers);
-    const cart = cartData.data; 
-    
-    if (!cart?.items?.length) return res.status(400).json({ error: "Cart is empty" });
+    const cartData = await callViaGateway(
+      "GET",
+      `/cart/${userId}`,
+      {},
+      req.headers,
+    );
+    const cart = cartData.data;
+
+    if (!cart?.items?.length)
+      return res.status(400).json({ error: "Cart is empty" });
 
     // Fetch User Email
-    const userData = await callViaGateway("GET", `/auth/users/${userId}`, {}, req.headers);
-    if (!userData.user?.email) return res.status(400).json({ error: "User email not found" });
-    
+    const userData = await callViaGateway(
+      "GET",
+      `/auth/users/${userId}`,
+      {},
+      req.headers,
+    );
+    if (!userData.user?.email)
+      return res.status(400).json({ error: "User email not found" });
+
     const userEmail = userData.user.email;
 
-    // Calculate Pricing Securely in Backend
-    const items = await Promise.all(cart.items.map(async (item) => {
-      let product = null;
-
-      try {
-        const productData = await callViaGateway(
-          "GET",
-          `/inventory/products/${item.productId}`,
-          {},
-          req.headers
-        );
-
-        product = productData?.product || productData?.data || productData;
-      } catch (err) {
-        console.error(`Non-critical Error: Failed to fetch product details for ${item.productId}:`, err.message);
-      }
-
-      const productName = item.productName || product?.name || product?.productName || product?.title;
+    // Calculate Pricing using Cart Data (Already stored in cart)
+    const items = cart.items.map((item) => {
+      const productName = item.name || item.productName;
 
       if (!productName) {
-        throw new Error(`Product name not found for product ${item.productId}`);
+        throw new Error(
+          `Product name not found for product ${item.productId}`,
+        );
       }
 
       return {
         productId: item.productId,
         productName,
-        productImage: getFirstProductImage(product),
+        productImage: getFirstProductImage(item),
         quantity: item.quantity,
-        price: item.price || product?.price || 0,
+        price: item.price || 0,
       };
-    }));
+    });
 
-    const total = items.reduce(
-      (sum, item) => sum + item.price * item.quantity, 0
-    ) - totalDiscount + deliveryFee;
+    const total =
+      items.reduce((sum, item) => sum + item.price * item.quantity, 0) -
+      totalDiscount +
+      deliveryFee;
 
     // Generate Custom Order ID
     const counter = await Counter.findOneAndUpdate(
       { id: "order_id" },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
     const customOrderId = `ORD#${counter.seq.toString().padStart(4, "0")}`;
 
     // Update Inventory concurrently to prevent sequential timeout compounding
     try {
-      await Promise.all(items.map(item =>
-        callViaGateway("PATCH", `/inventory/products/${item.productId}/stock`, { quantity: item.quantity }, req.headers)
-      ));
+      await Promise.all(
+        items.map((item) =>
+          callViaGateway(
+            "PATCH",
+            `/inventory/products/${item.productId}/stock`,
+            { quantity: item.quantity },
+            req.headers,
+          ),
+        ),
+      );
     } catch (err) {
-      console.error("Non-critical Error: Failed to update inventory for one or more products:", err.message);
+      console.error(
+        "Non-critical Error: Failed to update inventory for one or more products:",
+        err.message,
+      );
     }
 
     // Save Order
@@ -99,33 +116,43 @@ const createOrder = async (req, res) => {
       deliveryFee,
       deliveryAddress,
       province,
-      district
+      district,
     });
 
     await order.save();
 
     // Clear the Cart Natively via Backend
     try {
-      await callViaGateway("DELETE", `/cart/clear/${userId}`, {}, req.headers); 
+      await callViaGateway("DELETE", `/cart/clear/${userId}`, {}, req.headers);
     } catch (err) {
-      console.error("Non-critical Error: Failed to automatically clear user cart", err);
+      console.error(
+        "Non-critical Error: Failed to automatically clear user cart",
+        err,
+      );
     }
 
     // Send Notification
     let notification = null;
     try {
-      notification = await callViaGateway("POST", "/notification/send", {
-        type: "order_confirmation",
-        email: userEmail,
-        orderId: order._id
-      }, req.headers);
+      notification = await callViaGateway(
+        "POST",
+        "/notification/send",
+        {
+          type: "order_confirmation",
+          email: userEmail,
+          orderId: order._id,
+        },
+        req.headers,
+      );
     } catch (err) {
-      console.error("Non-critical Error: Failed to send email notification", err);
+      console.error(
+        "Non-critical Error: Failed to send email notification",
+        err,
+      );
     }
 
     // Successfully Respond
     res.status(201).json({ success: true, order, notification });
-    
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create order" });
@@ -152,7 +179,8 @@ const updateOrderStatus = async (req, res) => {
       req.headers,
     );
 
-    if (!userData.user?.email) return res.status(400).json({ error: "User email not found" });
+    if (!userData.user?.email)
+      return res.status(400).json({ error: "User email not found" });
 
     // Send Status Update Notification
     const notification = await callViaGateway(
