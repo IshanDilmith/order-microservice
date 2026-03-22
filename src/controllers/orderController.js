@@ -84,7 +84,7 @@ createOrder = async (req, res) => {
       notification = await callViaGateway("POST", "/notification/send", {
         type: "order_confirmation",
         email: userEmail,
-        orderId: customOrderId
+        orderId: order._id
       }, req.headers);
     } catch (err) {
       console.error("Non-critical Error: Failed to send email notification", err);
@@ -128,7 +128,7 @@ updateOrderStatus = async (req, res) => {
       {
         type: "order_status_update",
         email: userData.user.email,
-        orderId: order.orderId,
+        orderId: order._id,
       },
       req.headers,
     );
