@@ -15,7 +15,7 @@ createOrder = async (req, res) => {
     if (!cart?.items?.length) return res.status(400).json({ error: "Cart is empty" });
 
     // Fetch User Email
-    const userData = await callViaGateway("GET", `/users/${userId}`, {}, req.headers);
+    const userData = await callViaGateway("GET", `/auth/users/${userId}`, {}, req.headers);
     if (!userData.user?.email) return res.status(400).json({ error: "User email not found" });
     
     const userEmail = userData.user.email;
@@ -114,7 +114,7 @@ updateOrderStatus = async (req, res) => {
     // Fetch User Email again to notify about the status change
     const userData = await callViaGateway(
       "GET",
-      `/users/${order.userId}`,
+      `/auth/users/${order.userId}`,
       {},
       req.headers,
     );

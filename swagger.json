@@ -33,7 +33,7 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Create a new order",
-        "description": "Creates a new order for the authenticated user. Fetches cart data and user email via the API gateway, decrements inventory for each item, saves the order with an auto-generated custom order ID (e.g. ORD#0001), and sends an email notification.",
+        "description": "Creates a new order for the authenticated user. Fetches cart data via /cart/{userId} and resolves the user email via /auth/users/{userId} through the API gateway, decrements inventory for each item, saves the order with an auto-generated custom order ID (e.g. ORD#0001), and sends an email notification.",
         "operationId": "createOrder",
         "security": [{ "BearerAuth": [] }],
         "requestBody": {
@@ -137,7 +137,7 @@
                   },
                   "inventoryFailed": {
                     "summary": "Inventory update failed",
-                    "value": { "error": "Failed to update inventory for one or more items" }
+                    "value": { "error": "Failed to update inventory for one or more items." }
                   }
                 }
               }
@@ -150,7 +150,7 @@
       "patch": {
         "tags": ["Orders"],
         "summary": "Update order status",
-        "description": "Updates the status of an existing order identified by its MongoDB `_id`. After updating, a notification email is sent to the user via the gateway.",
+        "description": "Updates the status of an existing order identified by its MongoDB `_id`. After updating, the service resolves the user's email via /auth/users/{userId} and sends a notification email through the gateway.",
         "operationId": "updateOrderStatus",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
@@ -696,6 +696,7 @@
           },
           "notification": {
             "type": "object",
+            "nullable": true,
             "description": "Response from the notification service",
             "properties": {
               "success": {
@@ -720,6 +721,7 @@
           },
           "notification": {
             "type": "object",
+            "nullable": true,
             "description": "Response from the notification service",
             "properties": {
               "success": {
